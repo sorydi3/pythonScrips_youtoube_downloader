@@ -1,64 +1,72 @@
 from multiprocessing import Pool
 import youtube_dl
 import os
-from os.path import basename
-from urllib.parse import urlparse
 
 # Create a directory to save the videos
-save_dir = 'videos4'
-if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
 
 
-# List of YouTube links to download
-"""
-'https://youtu.be/utiEvVjxbtQ',
-    'https://youtu.be/AAkETJn2qyA',
-    'https://youtu.be/kNmUeHUR1ww',
-    'https://youtu.be/eM9kGm99vKo',
-    'https://youtu.be/mGOarfHJJ6o',
-    'https://youtu.be/h35o7aVnd5A',
-    'https://youtu.be/kqpptPkp9dY',
-    'https://youtu.be/4UptgaE-g_g',
-    'https://youtu.be/9NY4s82gM0Y',
-    'https://youtu.be/jPJInEyz3Pc',
-    'https://youtu.be/gcwCAOR0yEg',
-    'https://youtu.be/tVcE5PFXpbQ',
-    'https://youtu.be/vbe1ZGhGofs',
-    'https://youtu.be/gt2PgbDekfc',
-    'https://youtu.be/16K_2Rx4NUY',
-    'https://youtu.be/S7Z9XJ1b6no',
-    'https://youtu.be/gO8GFsfPe4E'
-"""
-links = [
-    'https://youtu.be/XCQs8plhq5U'
-]
+class DownloadVideos:
+    def __init__(self, links, save_dir):
+        self.links = links
+        self.save_dir = save_dir
+        self.options = None
+        self.create_save_dir()
 
-# Set options for youtube-dl
-options = {
-    'format': 'bestaudio/best',  # only download the best audio quality
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',  # use ffmpeg to extract audio
-        'preferredcodec': 'mp3',  # specify the codec
-        'preferredquality': '320',  # specify the bitrate in kbps
-    }],
-    # save audio with title as filename
-    'outtmpl': os.path.join(save_dir, '%(title)s_%(link)s.%(ext)s'),
-    'nooverwrites': True,  # don't overwrite existing files
-    'n_downloads': 10,  # download 8 videos at the same time
-    # display log information
-    'progress_hooks': [lambda x: print(f'{x["status"]}: {x["filename"]}: {x["downloaded_bytes"]}/{x["total_bytes"]}]')],
-}
+    def create_save_dir(self):
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
-# Function to download a video
+    def download_video(self, link):
+        with youtube_dl.YoutubeDL(options) as ydl:
+            ydl.download([link])
 
+    def get_save_dir(self):
+        return self.save_dir
 
-def download_video(link):
-    with youtube_dl.YoutubeDL(options) as ydl:
-        ydl.download([link])
+    def set_options(self, options):
+        self.options = options
+
+    def download_videos(self):
+        # Create a pool of workers to download videos in parallel
+        print("Downloading videos... pools %s", self.links)
+        with Pool(8) as p:
+            p.map(self.links)
+
+    def run(self):
+        self.download_videos()
 
 
 if __name__ == '__main__':
-    # Create a pool of workers to download videos in parallel
+    # Download videos
+    save_dir = 'videos_test'
+    links = [
+        'https://youtu.be/XCQs8plhq5U',
+        'https://youtu.be/S7Z9XJ1b6no',
+        'https://youtu.be/gO8GFsfPe4E'
+    ]
+
+    downloader = DownloadVideos(links, save_dir)
+    options = {
+        'format': 'bestaudio/best',  # only download the best audio quality
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',  # use ffmpeg to extract audio
+            'preferredcodec': 'mp3',  # specify the codec
+            'preferredquality': '320',  # specify the bitrate in kbps
+        }],
+        # save audio with title as filename
+        'outtmpl': os.path.join(save_dir, '%(title)s_%(link)s.%(ext)s'),
+        'nooverwrites': True,  # don't overwrite existing files
+        'n_downloads': 8,  # download 8 videos at the same time
+        # display log information
+        'progress_hooks': [lambda x: print(f'{x["status"]}: {x["filename"]}: {x["downloaded_bytes"]}/{x["total_bytes"]}]')],
+    }
+
+    downloader.set_options(options)
+    print("Downloading videos...")
+
     with Pool(8) as p:
-        p.map(download_video, links)
+        p.map(downloader.download_video, links)
+
+    # downloader.run()
+
+    # Convert to mp3

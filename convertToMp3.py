@@ -1,11 +1,19 @@
 # Path: convertToMp3.py
 import os
+
+
 class CoverterToMp3:
     def __init__(self, from_format, to_format, sorce_path, destination_path):
         self.from_format = from_format
         self.to_format = to_format
         self.sorce_path = sorce_path
+        # create destination folder
+        self.make_dir_destination(destination_path)
         self.destination_path = destination_path
+
+    def make_dir_destination(self, destination_path):
+        if not os.path.exists(destination_path):
+            os.makedirs(destination_path)
 
     def convert(self):
         self.rename()
