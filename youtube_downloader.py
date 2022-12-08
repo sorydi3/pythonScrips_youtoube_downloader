@@ -1,72 +1,69 @@
 from multiprocessing import Pool
-import youtube_dl
 import os
+import youtube_dl
+from convertToMp3 import CoverterToMp3
 
 # Create a directory to save the videos
 
 
 class DownloadVideos:
-    def __init__(self, links, save_dir):
-        self.links = links
+    def __init__(self, save_dir):
         self.save_dir = save_dir
-        self.options = None
         self.create_save_dir()
 
     def create_save_dir(self):
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
-    def download_video(self, link):
-        with youtube_dl.YoutubeDL(options) as ydl:
-            ydl.download([link])
-
     def get_save_dir(self):
         return self.save_dir
 
-    def set_options(self, options):
-        self.options = options
 
-    def download_videos(self):
-        # Create a pool of workers to download videos in parallel
-        print("Downloading videos... pools %s", self.links)
-        with Pool(8) as p:
-            p.map(self.links)
+links = [
+    'https://youtu.be/XCQs8plhq5U'
+]
 
-    def run(self):
-        self.download_videos()
+save_dir = 'videos2'
+options = {
+    'format': 'bestaudio/best',  # only download the best audio quality
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',  # use ffmpeg to extract audio
+        'preferredcodec': 'mp3',  # specify the codec
+        'preferredquality': '320',  # specify the bitrate in kbps
+    }],
+    # save audio with title as filename
+    'outtmpl': os.path.join(save_dir, '%(title)s_%(link)s.%(ext)s'),
+    'nooverwrites': True,  # don't overwrite existing files
+    # download 8 videos at the same time
+    'n_downloads': 10 if len(links) > 10 else len(links),
+    # display log information
+    'progress_hooks': [lambda x: print(f'{x["status"]}: {x["filename"]}: {x["downloaded_bytes"]}/{x["total_bytes"]}]')],
+}
+
+
+def download_video(link):
+    with youtube_dl.YoutubeDL(options) as ydl:
+        ydl.download([link])
 
 
 if __name__ == '__main__':
+    print("---------------------------------------------------------------")
+    print("-------------------DOWNLOADING VIDEOS--------------------------")
+    print("---------------------------------------------------------------")
     # Download videos
-    save_dir = 'videos_test'
-    links = [
-        'https://youtu.be/XCQs8plhq5U',
-        'https://youtu.be/S7Z9XJ1b6no',
-        'https://youtu.be/gO8GFsfPe4E'
-    ]
+    downloader = DownloadVideos(save_dir)
+    print("NUMBER OF THREADS: %s", 10 if len(links) > 10 else len(links))
+    with Pool(10 if len(links) > 10 else len(links)) as p:
+        p.map(download_video, links)
 
-    downloader = DownloadVideos(links, save_dir)
-    options = {
-        'format': 'bestaudio/best',  # only download the best audio quality
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',  # use ffmpeg to extract audio
-            'preferredcodec': 'mp3',  # specify the codec
-            'preferredquality': '320',  # specify the bitrate in kbps
-        }],
-        # save audio with title as filename
-        'outtmpl': os.path.join(save_dir, '%(title)s_%(link)s.%(ext)s'),
-        'nooverwrites': True,  # don't overwrite existing files
-        'n_downloads': 8,  # download 8 videos at the same time
-        # display log information
-        'progress_hooks': [lambda x: print(f'{x["status"]}: {x["filename"]}: {x["downloaded_bytes"]}/{x["total_bytes"]}]')],
-    }
-
-    downloader.set_options(options)
-    print("Downloading videos...")
-
-    with Pool(8) as p:
-        p.map(downloader.download_video, links)
-
-    # downloader.run()
+    print("---------------------------------------------------------------")
+    print("-------------------CONVERTING TO MP3---------------------------")
+    print("---------------------------------------------------------------")
 
     # Convert to mp3
+    from_format = ".webm"
+    to_format = ".mp3"
+    webm_folder = os.path.join(r"C:\Users\ibrah\pythonScrips", save_dir)
+    mp3_folder = os.path.join(r"C:\Users\ibrah\pythonScrips", save_dir, "mp3")
+    converter = CoverterToMp3(from_format, to_format, webm_folder, mp3_folder)
+    converter.convert()

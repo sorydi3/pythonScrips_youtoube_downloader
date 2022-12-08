@@ -16,10 +16,13 @@ class CoverterToMp3:
             os.makedirs(destination_path)
 
     def convert(self):
+        print("Converting...%s", self.sorce_path)
         self.rename()
         files = [f for f in os.listdir(
             self.sorce_path) if f.endswith(self.from_format)]
+        print("SIZE...%s", len(files))
         for file in files:
+            print(file)
             input_path = os.path.join(self.sorce_path, file)
             output_path = os.path.join(
                 self.destination_path, file.replace(self.from_format, self.to_format))
