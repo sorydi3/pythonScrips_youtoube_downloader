@@ -1,17 +1,18 @@
 from multiprocessing import Pool
 import youtube_dl
 import os
+from os.path import basename
+from urllib.parse import urlparse
 
 # Create a directory to save the videos
-save_dir = 'videos2'
+save_dir = 'videos4'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 
 
 # List of YouTube links to download
-links = [
-    'https://youtu.be/XCQs8plhq5U',
-    'https://youtu.be/utiEvVjxbtQ',
+"""
+'https://youtu.be/utiEvVjxbtQ',
     'https://youtu.be/AAkETJn2qyA',
     'https://youtu.be/kNmUeHUR1ww',
     'https://youtu.be/eM9kGm99vKo',
@@ -28,6 +29,9 @@ links = [
     'https://youtu.be/16K_2Rx4NUY',
     'https://youtu.be/S7Z9XJ1b6no',
     'https://youtu.be/gO8GFsfPe4E'
+"""
+links = [
+    'https://youtu.be/XCQs8plhq5U'
 ]
 
 # Set options for youtube-dl
@@ -39,11 +43,11 @@ options = {
         'preferredquality': '320',  # specify the bitrate in kbps
     }],
     # save audio with title as filename
-    'outtmpl': os.path.join(save_dir, '%(title)s.%(ext)s'),
+    'outtmpl': os.path.join(save_dir, '%(title)s_%(link)s.%(ext)s'),
     'nooverwrites': True,  # don't overwrite existing files
-    'n_downloads': 8,  # download 8 videos at the same time
+    'n_downloads': 10,  # download 8 videos at the same time
     # display log information
-    'progress_hooks': [lambda x: print(f'{x["status"]}: {x["filename"]}: {x["link"]}]')],
+    'progress_hooks': [lambda x: print(f'{x["status"]}: {x["filename"]}: {x["downloaded_bytes"]}/{x["total_bytes"]}]')],
 }
 
 # Function to download a video
